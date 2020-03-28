@@ -21,5 +21,8 @@ A small template repository that converts a source code FMU to a target platform
 - [fmpy](https://github.com/CATIA-Systems/FMPy)
 - [Azure pipeline](https://azure.microsoft.com/en-us/services/devops/pipelines/)
 
+## Known issues
+- Only tested with Dymola FMUs.
+
 
 
