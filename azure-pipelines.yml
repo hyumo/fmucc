@@ -1,0 +1,77 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+variables:
+  compileLinux64: true
+  compileWin64: false
+
+jobs: 
+- job: 
+  displayName: 'Linxu64'
+  pool:
+    vmImage: 'ubuntu-latest'
+  condition: eq(variables.compileLinux64, true)
+  steps:
+    - bash: echo "##vso[task.prependpath]$CONDA/bin"
+      displayName: Add conda to PATH
+  
+    - bash: conda create --yes --quiet --name myEnvironment
+      displayName: Create Anaconda environment
+  
+    - bash: |
+        source activate myEnvironment
+        conda install --yes --quiet --name myEnvironment -c conda-forge fmpy
+      displayName: Install fmpy
+    
+    - script: |
+        source activate myEnvironment
+        python fmucc.py --fmus ./fmus --dst $(System.DefaultWorkingDirectory)/converted
+      displayName: Cross compilation
+  
+    - task: PublishPipelineArtifact@1
+      inputs: 
+        targetPath: $(System.DefaultWorkingDirectory)/converted
+        artifact: linux64Conv.zip
+        displayName: Publising artifacts
+
+- job: 
+  displayName: 'Win64'
+  pool:
+    vmImage: 'vs2017-win2016'
+  condition: eq(variables.compileWin64, true)
+  steps:
+    - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+      displayName: Add conda to PATH
+  
+    - script: conda create --yes --quiet --name myEnvironment
+      displayName: Create Anaconda environment
+  
+    - script: |
+        call activate myEnvironment
+        conda install --yes --quiet --name myEnvironment -c conda-forge fmpy
+      displayName: Install fmpy
+    
+    - script: |
+        call activate myEnvironment
+        python fmucc.py --fmus ./fmus --dst $(System.DefaultWorkingDirectory)/converted
+      displayName: Cross compilation
+
+    - task: PublishPipelineArtifact@1
+      inputs: 
+        targetPath: $(System.DefaultWorkingDirectory)/converted
+        artifact: win64Conv.zip
+        displayName: Publising artifacts
+
+
+
+
+
+
+
+
+
